@@ -69,22 +69,22 @@ def draw_masthead(cv):
     name = "THE DAILY WORLD"
     nw = font.text_width(name, 8)
     font.draw_text(cv, (W - nw) // 2, 34, name, scale=8, color=INK, bold=True)
-    _hline(cv, 16, 96, W - 32, RULE, 3)
+    _hline(cv, 16, 94, W - 32, RULE, 3)
     # date line, big and unmissable
     dw = font.text_width(DATE_LINE, 4)
-    font.draw_text(cv, (W - dw) // 2, 106, DATE_LINE, scale=4,
+    font.draw_text(cv, (W - dw) // 2, 102, DATE_LINE, scale=4,
                    color=ACCENT, bold=True)
     strap = ("52 stories - 7 regions - 16 drawn - every story date-checked "
              "to this day")
     sw = font.text_width(strap, 2)
-    font.draw_text(cv, (W - sw) // 2, 140, strap, scale=2, color=INK)
-    _hline(cv, 16, 162, W - 32, RULE, 1)
-    return 170
+    font.draw_text(cv, (W - sw) // 2, 134, strap, scale=2, color=INK)
+    _hline(cv, 16, 156, W - 32, RULE, 1)
+    return 162
 
 
 def draw_top_story(cv, story, y):
     x = 16
-    img_w, img_h = 330, 188
+    img_w, img_h = 330, 168
     scenes.draw_scene(cv, story["scene"], x, y, img_w, img_h)
     tx = x + img_w + 16
     tw = 664 - tx
@@ -96,11 +96,11 @@ def draw_top_story(cv, story, y):
     ly = y + 20
     for ln in lines[:3]:
         font.draw_text(cv, tx, ly, ln, scale=3, color=INK, bold=True)
-        ly += 25
+        ly += 23
     sy = ly + 4
     for ln in font.wrap(story["summary"], 2, tw)[:5]:
         font.draw_text(cv, tx, sy, ln, scale=2, color=(52, 52, 58))
-        sy += 16
+        sy += 15
     font.draw_text(cv, tx, min(sy + 4, y + img_h - 12),
                    story["location"] + " - " + story["source"],
                    scale=1, color=MUTE)
@@ -172,7 +172,7 @@ def draw_briefs(cv, briefs, y):
     cols = 4
     gap = 10
     cw = (W - 32 - gap * (cols - 1)) // cols
-    row_h = 25
+    row_h = 27
     by = y + 24
     for i, s in enumerate(briefs):
         cx = 16 + (i % cols) * (cw + gap)
@@ -204,14 +204,29 @@ def draw_footer(cv, y):
                    scale=1, color=MUTE)
 
 
+LEAD_IMG_H = 64
+
+
+def lead_headline_lines(story, w):
+    """Every lead headline is drawn in full: at this column width the
+    longest ones wrap to three lines, and a cell must leave room for
+    all of them (an earlier layout drew only two and cut the last
+    word off three headlines)."""
+    return font.wrap(story["headline"], 2, w - 12)[:3]
+
+
+def lead_cell_h(story, w):
+    n = len(lead_headline_lines(story, w))
+    return LEAD_IMG_H + 4 + n * 15 + 1 + 7 + 2
+
+
 def draw_lead_cell(cv, story, x, y, w):
-    img_h = 72
+    img_h = LEAD_IMG_H
     scenes.draw_scene(cv, story["scene"], x, y, w, img_h)
     color = REGION_COLORS[story["region"]]
     cv.circle(x + 6, y + img_h + 10, 3, color)
     ly = y + img_h + 4
-    lines = font.wrap(story["headline"], 2, w - 12)
-    for ln in lines[:2]:
+    for ln in lead_headline_lines(story, w):
         font.draw_text(cv, x + 12, ly, ln, scale=2, color=INK, bold=True)
         ly += 15
     font.draw_text(cv, x + 12, ly + 1, story["source"], scale=1, color=MUTE)
@@ -221,13 +236,16 @@ def draw_leads(cv, leads, y):
     cols = 5
     gap = 6
     cw = (W - 32 - gap * (cols - 1)) // cols
-    cell_h = 116
-    for i, story in enumerate(leads):
-        cx = 16 + (i % cols) * (cw + gap)
-        cy = y + (i // cols) * cell_h
-        draw_lead_cell(cv, story, cx, cy, cw)
-    rows = (len(leads) + cols - 1) // cols
-    return y + rows * cell_h
+    # each row is as tall as its tallest cell, so a three-line
+    # headline never pushes its source line into the next row
+    for start in range(0, len(leads), cols):
+        row = leads[start:start + cols]
+        row_h = max(lead_cell_h(s, cw) for s in row)
+        for j, story in enumerate(row):
+            cx = 16 + j * (cw + gap)
+            draw_lead_cell(cv, story, cx, y, cw)
+        y += row_h
+    return y
 
 
 def main():
