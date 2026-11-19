@@ -40,37 +40,88 @@ def _building(cv, x, gy, w, h, body, roof, windows=(255, 226, 130)):
             cv.rect(wx, wy, 4, 6, windows)
 
 
+def _leader_seated(cv, cx, table_y, r, suit, hair, tie):
+    """One seated leader behind the table: head with a hair cap, a
+    suited torso that the table edge cuts off, shirt and tie."""
+    head_y = table_y - (r * 21) // 10
+    # torso: a trapezoid widening from the neck to the table line
+    cv.poly([(cx - r - 4, table_y), (cx - r + 1, head_y + r - 1),
+             (cx + r - 1, head_y + r - 1), (cx + r + 4, table_y)], suit)
+    # shirt V and tie
+    cv.poly([(cx - r // 3 - 1, head_y + r - 1), (cx + r // 3 + 1, head_y + r - 1),
+             (cx, table_y - 2)], (244, 244, 246))
+    cv.line(cx, head_y + r, cx, table_y - 3, tie, max(2, r // 4))
+    # head, then a slightly higher hair circle so a cap of hair shows
+    cv.circle(cx, head_y, r, (238, 198, 160))
+    cv.circle(cx, head_y - r // 3, r - max(1, r // 6), hair)
+    cv.circle(cx, head_y + r // 5, r - max(2, r // 4), (238, 198, 160))
+    # forearms resting on the table edge
+    cv.line(cx - r - 3, table_y - 3, cx - r - 7, table_y, suit,
+            max(2, r // 3))
+    cv.line(cx + r + 3, table_y - 3, cx + r + 7, table_y, suit,
+            max(2, r // 3))
+
+
 def scene_summit(cv, x, y, w, h):
-    gy = _sky(cv, x, y, w, h, (168, 205, 240), (225, 240, 252), (96, 128, 84))
-    _cloud(cv, x + w // 5, y + h // 7, w / 140)
-    _sun(cv, x + w - w // 7, y + h // 6, max(4, w // 16))
-    # conference hall: colonnade, drum and a modest dome
-    bw = w * 3 // 5
-    bx = x + (w - bw) // 2
-    base = gy - h // 16
-    cv.rect(bx, base - h // 4, bw, h // 4, (228, 224, 214))
-    for i in range(5):
-        cxx = bx + 6 + i * (bw - 12) // 4
-        cv.rect(cxx - 2, base - h // 4 + 3, 4, h // 4 - 6, (250, 248, 242))
-    cv.rect(bx - 3, base - h // 4 - 4, bw + 6, 4, (150, 146, 138))
-    cv.rect(bx + bw // 4, base - h // 4 - h // 8, bw // 2, h // 8, (214, 208, 196))
-    cv.ellipse(bx + bw // 2, base - h // 4 - h // 8, bw // 4, h // 7,
-               (110, 142, 178))
-    cv.rect(bx + bw // 2 - 1, base - h // 4 - h // 8 - h // 7 - 3, 2, 5, INK)
-    # three flags on poles in front
-    for i, col in enumerate(((198, 52, 60), (246, 197, 66), (52, 84, 168))):
-        fx = x + w // 10 + i * (w // 13)
-        cv.line(fx, gy, fx, gy - h * 2 // 5, INK, 2)
-        cv.rect(fx + 1, gy - h * 2 // 5, w // 10, h // 8, col)
-    # two leaders shaking hands, large in the foreground
-    f1 = x + w * 13 // 20
-    f2 = x + w * 17 // 20
-    for fx, col in ((f1, (52, 84, 168)), (f2, (160, 44, 52))):
-        cv.circle(fx, gy - h // 3, 5, (238, 198, 160))
-        cv.line(fx, gy - h // 3 + 5, fx, gy - 4, col, 4)
-        cv.line(fx, gy - 4, fx - 4, gy, col, 3)
-        cv.line(fx, gy - 4, fx + 4, gy, col, 3)
-    cv.line(f1 + 3, gy - h // 5, f2 - 3, gy - h // 5, (238, 198, 160), 3)
+    """A summit room, drawn as a room: three national banners hang on
+    the wall and three leaders sit at one long conference table."""
+    floor_h = max(8, h // 5)
+    cv.vgrad(x, y, w, h - floor_h, (196, 214, 233), (233, 239, 246))
+    cv.rect(x, y + h - floor_h, w, floor_h, (128, 102, 76))
+    cv.rect(x, y + h - floor_h - 3, w, 3, (168, 176, 190))
+    table_y = y + (h * 68) // 100
+    seats = (x + w // 4, x + w // 2, x + w * 3 // 4)
+    # three hanging banners, one behind each seat
+    flag_w = max(12, w // 11)
+    flag_top = y + max(3, h // 16)
+    flag_h = (h * 42) // 100
+    for i, cx in enumerate(seats):
+        fx = cx - flag_w // 2
+        cv.rect(fx - 2, flag_top - 2, flag_w + 4, 3, (110, 84, 50))
+        if i == 0:  # blue field, white stars as a dot grid
+            cv.rect(fx, flag_top, flag_w, flag_h, (52, 74, 160))
+            for gx in range(3):
+                for gy2 in range(4):
+                    cv.rect(fx + 3 + gx * (flag_w - 6) // 2,
+                            flag_top + 4 + gy2 * (flag_h - 8) // 3,
+                            2, 2, (255, 255, 255))
+        elif i == 1:  # red field, one big and four small gold stars
+            cv.rect(fx, flag_top, flag_w, flag_h, (198, 44, 48))
+            cv.circle(fx + flag_w // 3, flag_top + flag_h // 4,
+                      max(2, flag_w // 6), (246, 205, 66))
+            for k in range(3):
+                cv.rect(fx + flag_w * 2 // 3,
+                        flag_top + 3 + k * (flag_h // 4), 2, 2,
+                        (246, 205, 66))
+        else:  # white-blue-red horizontal bands
+            band = flag_h // 3
+            cv.rect(fx, flag_top, flag_w, band, (244, 244, 246))
+            cv.rect(fx, flag_top + band, flag_w, band, (52, 84, 168))
+            cv.rect(fx, flag_top + 2 * band, flag_w, flag_h - 2 * band,
+                    (198, 52, 60))
+    # the three leaders: fair hair / dark hair / grey hair, three suits
+    r = max(5, h // 9)
+    leaders = (
+        ((36, 48, 88), (228, 198, 122), (178, 40, 48)),
+        ((28, 28, 34), (22, 22, 26), (52, 74, 160)),
+        ((54, 54, 62), (198, 198, 204), (150, 36, 44)),
+    )
+    for cx, (suit, hair, tie) in zip(seats, leaders):
+        _leader_seated(cv, cx, table_y, r, suit, hair, tie)
+    # the long table over their laps, with a name plate at each seat
+    tx0 = x + (w * 6) // 100
+    tx1 = x + (w * 94) // 100
+    cv.rect(tx0 - 4, table_y - 3, tx1 - tx0 + 8, 5, (146, 102, 62))
+    cv.rect(tx0, table_y + 2, tx1 - tx0, y + h - floor_h + 3 - table_y,
+            (104, 70, 42))
+    for cx in seats:
+        pw = max(10, r * 2)
+        cv.rect(cx - pw // 2, table_y + 5, pw, max(4, h // 22),
+                (246, 244, 238))
+        # a slim microphone rising from the table toward each leader
+        cv.line(cx + r + 6, table_y - 2, cx + r // 2, table_y - r - 2,
+                INK, 1)
+        cv.circle(cx + r // 2, table_y - r - 3, 2, INK)
 
 
 def scene_court(cv, x, y, w, h):
@@ -445,14 +496,25 @@ def scene_health(cv, x, y, w, h):
 
 
 def scene_bridge(cv, x, y, w, h):
+    """A long suspension bridge over water, hit amidships: the deck is
+    broken at the centre, smoke and flame rise from the gap, and the
+    train that should cross it stands stopped on the near span."""
     cv.vgrad(x, y, w, h * 2 // 3, (150, 190, 228), (222, 240, 250))
     wy = y + h * 2 // 3
     cv.rect(x, wy, w, h // 3, (66, 110, 156))
-    # towers and deck
+    for i in range(4):
+        wx = x + 6 + i * (w // 4)
+        cv.polyline([(wx, wy + h // 7), (wx + 9, wy + h // 7 - 4),
+                     (wx + 18, wy + h // 7)], (190, 224, 246), 2)
+    deck_y = wy - h // 8
+    gap0 = x + (w * 44) // 100
+    gap1 = x + (w * 57) // 100
+    # towers
     for tx in (x + w // 4, x + w * 3 // 4):
-        cv.rect(tx - 3, y + h // 6, 6, wy - y - h // 6, (150, 96, 70))
-    cv.rect(x, wy - h // 8, w, 5, (120, 76, 56))
-    # suspension cables: two catenary runs per tower
+        cv.rect(tx - 3, y + h // 6, 6, deck_y + 6 - y - h // 6,
+                (150, 96, 70))
+    # suspension cables: two catenary runs per tower (kept from the
+    # intact bridge - the smoke below hides where the blast cut them)
     for side in range(2):
         tx = x + w // 4 if side == 0 else x + w * 3 // 4
         other = x if side == 0 else x + w
@@ -460,18 +522,53 @@ def scene_bridge(cv, x, y, w, h):
         for t_i in range(25):
             t = t_i / 24.0
             px = int(tx + (mid - tx) * t)
-            py = int((y + h // 6) + (wy - h // 8 - (y + h // 6)) * (t * t))
+            py = int((y + h // 6) + (deck_y - (y + h // 6)) * (t * t))
             cv.set(px, py, (90, 60, 44))
             cv.set(px, py + 1, (90, 60, 44))
             qx = int(tx + (other - tx) * t)
-            qy = int((y + h // 6) + (wy - h // 8 - (y + h // 6)) * (1 - (1 - t) * (1 - t)))
+            qy = int((y + h // 6) + (deck_y - (y + h // 6))
+                     * (1 - (1 - t) * (1 - t)))
             cv.set(qx, qy, (90, 60, 44))
             cv.set(qx, qy + 1, (90, 60, 44))
-    # a car crossing
-    cx = x + w * 2 // 5
-    cv.rect(cx, wy - h // 8 - 8, 16, 6, (198, 60, 60))
-    cv.circle(cx + 3, wy - h // 8 - 1, 2, INK)
-    cv.circle(cx + 13, wy - h // 8 - 1, 2, INK)
+    # the deck, in two pieces with jagged broken ends at the gap
+    cv.rect(x, deck_y, gap0 - x, 5, (120, 76, 56))
+    cv.rect(gap1, deck_y, x + w - gap1, 5, (120, 76, 56))
+    cv.poly([(gap0 - 5, deck_y), (gap0 + 2, deck_y + 2), (gap0 - 3, deck_y + 5)],
+            (90, 56, 40))
+    cv.poly([(gap1 + 5, deck_y), (gap1 - 2, deck_y + 2), (gap1 + 3, deck_y + 5)],
+            (90, 56, 40))
+    # a train stopped on the left span, short of the break
+    train_w = max(20, w // 5)
+    train_x = gap0 - train_w - max(4, w // 20)
+    train_y = deck_y - max(8, h // 9)
+    train_h = max(8, h // 9)
+    cv.rect(train_x, train_y, train_w, train_h, (178, 52, 52))
+    cv.rect(train_x, train_y, train_w // 4, train_h, (120, 36, 40))
+    for i in range(3):
+        cv.rect(train_x + train_w // 3 + i * (train_w // 5),
+                train_y + 2, max(3, train_w // 8), train_h // 2,
+                (214, 234, 248))
+    # flames licking from the broken centre
+    mid = (gap0 + gap1) // 2
+    fh = max(12, h // 4)
+    cv.poly([(gap0 + 1, deck_y + 2), (mid, deck_y - fh), (gap1 - 1, deck_y + 2)],
+            (232, 96, 30))
+    cv.poly([(gap0 + 4, deck_y + 2), (mid, deck_y - fh * 2 // 3),
+             (gap1 - 4, deck_y + 2)], (246, 178, 60))
+    # a smoke plume rising over the gap - kept small and to the
+    # right of the flames, so the broken deck stays visible
+    _cloud(cv, mid + w // 9, deck_y - fh - max(4, h // 12), w / 230,
+           (104, 100, 104))
+    _cloud(cv, mid + w // 5, deck_y - fh - max(7, h // 7), w / 280,
+           (80, 76, 82))
+    # falling debris and the splash where it lands
+    for i, dx in enumerate((-6, 0, 7)):
+        dy0 = deck_y + 6 + i * 3
+        cv.line(mid + dx, dy0, mid + dx - 2, dy0 + max(5, h // 10),
+                (70, 52, 40), 2)
+    cv.polyline([(mid - 12, wy + 5), (mid - 5, wy + 1), (mid, wy + 5),
+                 (mid + 5, wy + 1), (mid + 12, wy + 5)],
+                (235, 246, 252), 2)
 
 
 def scene_storm(cv, x, y, w, h):
@@ -498,6 +595,149 @@ def scene_storm(cv, x, y, w, h):
     cv.line(tx - 8, gy - h // 3, tx + 2, gy - h // 3 + 3, INK, 2)
     cv.polyline([(tx - 18, gy - h // 3 + 3), (tx - 10, gy - h // 6),
                  (tx - 14, gy - 2)], (40, 42, 50), 1)
+
+
+def scene_missile(cv, x, y, w, h):
+    """Riyadh at dusk: a tower skyline, one tower with an arched top,
+    and the bright streak of falling missile debris over the city."""
+    gy = _sky(cv, x, y, w, h, (52, 62, 108), (196, 116, 84),
+              (38, 36, 48), ground_h=max(5, h // 9))
+    # the debris streak, high right falling toward the towers, with a
+    # pale smoke trail curling behind its glowing head
+    hx, hy = x + (w * 56) // 100, y + (h * 40) // 100
+    tx, ty = x + (w * 94) // 100, y + (h * 6) // 100
+    cv.line(tx, ty, hx + 6, hy - 4, (196, 188, 190), 3)
+    cv.line(tx - 8, ty + 5, hx + 2, hy - 7, (150, 142, 148), 2)
+    cv.line(tx, ty, hx, hy, (250, 224, 150), 3)
+    cv.circle(hx, hy, max(3, h // 16), (252, 190, 90))
+    # smaller fragments tumbling below the head, with spark dots
+    for i, (dx, dy) in enumerate(((-14, 12), (-4, 18), (7, 13))):
+        px, py = hx + dx * w // 160, hy + dy * h // 64
+        cv.rect(px, py, 4, 3, (60, 48, 44))
+        cv.set(px - 3, py - 3, (250, 190, 90))
+        cv.set(px + 6, py + 4, (250, 190, 90))
+    # skyline silhouette: plain blocks plus one arched tower
+    base = gy + max(5, h // 9)
+    blocks = ((2, 34), (22, 48), (70, 40), (88, 30))
+    for bx_pc, bh_pc in blocks:
+        bw2 = max(10, w // 7)
+        bx = x + (w * bx_pc) // 100
+        bh = (h * bh_pc) // 100
+        cv.rect(bx, base - bh, bw2, bh, (30, 30, 44))
+        for wy2 in range(base - bh + 4, base - 5, 8):
+            cv.rect(bx + 3, wy2, 3, 4, (255, 216, 120))
+    # the arched tower, centre: two legs and a beam, sky in the arch
+    tw = max(14, w // 6)
+    tx0 = x + (w * 42) // 100
+    th = (h * 62) // 100
+    cv.rect(tx0, base - th, tw // 3, th, (30, 30, 44))
+    cv.rect(tx0 + tw * 2 // 3, base - th, tw // 3, th, (30, 30, 44))
+    cv.rect(tx0, base - th, tw, th // 4, (30, 30, 44))
+    # smoke puff where an earlier fragment struck a rooftop, far right
+    _cloud(cv, x + (w * 88) // 100, base - (h * 36) // 100, w / 210,
+           (120, 112, 116))
+
+
+def scene_envoy(cv, x, y, w, h):
+    """An embassy send-off: a flat-roofed mission building, its flag
+    flying lowered on the pole, and the envoy walking away with a
+    suitcase toward the gate."""
+    gy = _sky(cv, x, y, w, h, (168, 204, 236), (230, 240, 250),
+              (178, 158, 120))
+    # mission building, left half: flat roof, door, shaded windows
+    bw = (w * 48) // 100
+    bh = (h * 58) // 100
+    bx = x + (w * 4) // 100
+    cv.rect(bx, gy - bh, bw, bh, (238, 232, 216))
+    cv.rect(bx - 3, gy - bh - 4, bw + 6, 5, (150, 96, 70))
+    cv.rect(bx + bw // 2 - 4, gy - 12, 8, 12, (110, 74, 50))
+    for i in range(3):
+        cv.rect(bx + 5 + i * (bw - 10) // 2, gy - bh + 7, 7, 8,
+                (96, 130, 160))
+    cv.rect(bx + 5, gy - bh + bh // 2, bw - 10, 3, (198, 178, 140))
+    # a low fence running from the building to the right edge
+    for fx in range(x + (w * 56) // 100, x + w - 4, 10):
+        cv.rect(fx, gy - 9, 2, 9, (90, 84, 78))
+    cv.rect(x + (w * 56) // 100, gy - 8, w - (w * 56) // 100 - 4, 2,
+            (90, 84, 78))
+    # flagpole with the flag lowered to half mast: green, white and
+    # black bands with the red band at the hoist
+    px = x + (w * 64) // 100
+    pole_top = y + (h * 8) // 100
+    cv.line(px, gy, px, pole_top, INK, 2)
+    cv.circle(px, pole_top - 1, 2, (198, 160, 60))
+    fw, fh = max(16, w // 6), max(9, h // 5)
+    fy = gy - (h * 46) // 100
+    cv.rect(px + 1, fy, fw, fh // 3, (44, 140, 84))
+    cv.rect(px + 1, fy + fh // 3, fw, fh // 3, (244, 244, 246))
+    cv.rect(px + 1, fy + 2 * (fh // 3), fw, fh - 2 * (fh // 3),
+            (36, 36, 40))
+    cv.rect(px + 1, fy, fw // 4, fh, (198, 52, 60))
+    # the envoy himself, right of the pole: dark suit, one suitcase
+    ex = x + (w * 84) // 100
+    cv.circle(ex, gy - (h * 34) // 100, max(3, h // 14), (238, 198, 160))
+    cv.line(ex, gy - (h * 34) // 100 + 4, ex, gy - 3, (34, 34, 40),
+            max(3, w // 48))
+    cv.line(ex, gy - 3, ex - 4, gy, (34, 34, 40), 2)
+    cv.line(ex, gy - 3, ex + 5, gy, (34, 34, 40), 2)
+    case_x, case_y = ex + max(6, w // 22), gy - (h * 20) // 100
+    cv.rect(case_x, case_y, max(9, w // 13), max(7, h // 7),
+            (150, 96, 52))
+    cv.rect(case_x + 2, case_y - 3, max(5, w // 26), 3, (110, 70, 38))
+    cv.line(ex + 3, gy - (h * 26) // 100, case_x + 3, case_y - 2,
+            (34, 34, 40), 2)
+
+
+def scene_law(cv, x, y, w, h):
+    """A parliament that has just passed a law: a pillared block with
+    a steep green cone-roofed tower, a gavel and the signed document
+    laid over the foreground."""
+    gy = _sky(cv, x, y, w, h, (164, 196, 230), (228, 240, 250),
+              (116, 132, 104))
+    # pillared main block
+    bw = (w * 72) // 100
+    bx = x + (w * 6) // 100
+    bh = (h * 36) // 100
+    cv.rect(bx, gy - bh, bw, bh, (224, 216, 198))
+    cv.rect(bx - 3, gy - bh - 3, bw + 6, 4, (148, 140, 128))
+    for i in range(5):
+        cxx = bx + 7 + i * (bw - 14) // 4
+        cv.rect(cxx - 2, gy - bh + 4, 4, bh - 7, (246, 242, 232))
+    # central tower with the steep dark-green cone roof
+    tw = max(14, w // 7)
+    tcx = x + w // 2
+    cv.rect(tcx - tw // 2, gy - bh - (h * 22) // 100, tw, (h * 22) // 100,
+            (214, 206, 188))
+    cv.poly([(tcx - tw // 2 - 4, gy - bh - (h * 22) // 100),
+             (tcx, gy - bh - (h * 52) // 100),
+             (tcx + tw // 2 + 4, gy - bh - (h * 22) // 100)],
+            (44, 106, 70))
+    cv.rect(tcx - 1, gy - bh - (h * 52) // 100 - 4, 2, 5, INK)
+    # the signed document, bottom right: white sheet, text lines, seal
+    dw, dh = (w * 30) // 100, (h * 40) // 100
+    dx, dy = x + (w * 64) // 100, y + (h * 56) // 100
+    cv.rect(dx, dy, dw, dh, (252, 252, 250))
+    cv.polyline([(dx, dy), (dx + dw - 1, dy), (dx + dw - 1, dy + dh - 1),
+                 (dx, dy + dh - 1)], INK, 1, close=True)
+    for i in range(3):
+        cv.rect(dx + 4, dy + 4 + i * 5, dw - 10 - (i % 2) * 5, 2,
+                (140, 140, 148))
+    cv.circle(dx + dw - 8, dy + dh - 7, 4, (198, 52, 60))
+    cv.circle(dx + dw - 8, dy + dh - 7, 2, (246, 205, 66))
+    # the gavel, bottom left: a banded head on a short handle, held
+    # over its sounding block
+    hx0, hy0 = x + (w * 22) // 100, y + (h * 54) // 100
+    hx1, hy1 = x + (w * 42) // 100, y + (h * 72) // 100
+    cv.rect(x + (w * 24) // 100, y + (h * 82) // 100, (w * 20) // 100,
+            4, (110, 74, 44))
+    cv.line(x + (w * 10) // 100, y + (h * 92) // 100,
+            (hx0 + hx1) // 2, (hy0 + hy1) // 2, (150, 100, 56),
+            max(3, h // 13))
+    cv.line(hx0, hy0, hx1, hy1, (104, 66, 36), max(6, h // 7))
+    cv.line(hx0 + 3, hy0 + 1, hx1 - 3, hy1 - 1, (170, 124, 74),
+            max(2, h // 18))
+    cv.circle(hx0, hy0, max(3, h // 16), (104, 66, 36))
+    cv.circle(hx1, hy1, max(3, h // 16), (104, 66, 36))
 
 
 def scene_generic(cv, x, y, w, h):
@@ -532,6 +772,9 @@ SCENES = {
     "health": scene_health,
     "bridge": scene_bridge,
     "storm": scene_storm,
+    "missile": scene_missile,
+    "envoy": scene_envoy,
+    "law": scene_law,
     "generic": scene_generic,
 }
 
