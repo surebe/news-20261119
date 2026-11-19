@@ -125,7 +125,7 @@ STORIES = [
         'region': 'Middle East',
         'field': 'Conflict',
         'source': 'Reuters',
-        'scene': 'generic',
+        'scene': 'missile',
         'lead': True,
     },
     {
@@ -161,7 +161,7 @@ STORIES = [
         'region': 'Africa',
         'field': 'Politics',
         'source': 'Reuters',
-        'scene': 'generic',
+        'scene': 'envoy',
         'lead': True,
     },
     {
@@ -185,7 +185,7 @@ STORIES = [
         'region': 'Asia',
         'field': 'Politics',
         'source': 'Reuters',
-        'scene': 'parliament',
+        'scene': 'law',
         'lead': True,
     },
     {
