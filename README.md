@@ -2,9 +2,9 @@
      rank and reward read from the make.fun API for this exact repo, and
      authorship is computed from the coding-agent transcripts bundled
      with the submission. Forged or static badges disqualify the entry. -->
-[![make.fun rank](https://make.fun/api/badge/news-image-20261119/surebe/news-20261119/rank.svg)](https://make.fun/bounty/news-image-20261119)
-[![make.fun reward](https://make.fun/api/badge/news-image-20261119/surebe/news-20261119/reward.svg)](https://make.fun/bounty/news-image-20261119)
-[![make.fun authorship](https://make.fun/api/badge/authorship/surebe/news-20261119.svg)](https://make.fun/bounty/news-image-20261119)
+[![make.fun · news-image-20261119](https://make.fun/badge/news-image-20261119.svg)](https://make.fun/bounty/news-image-20261119?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261119)
+[![rank](https://make.fun/badge/news-image-20261119/surebe/news-20261119/rank.svg)](https://make.fun/bounty/news-image-20261119/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261119)
+[![reward](https://make.fun/badge/news-image-20261119/surebe/news-20261119/reward.svg)](https://make.fun/bounty/news-image-20261119?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261119)
 
 # The Daily World - Thursday 19 November 2026
 
